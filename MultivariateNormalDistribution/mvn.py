@@ -1,19 +1,20 @@
+# Sources: "Machine Learning a Probabilistic Perspective, Kevin P. Murphy"
+
 import numpy as np
 import math
 from MultivariateNormalDistribution import mtsd
 
 class MultivariateNormalDistribution:
-    # Sources: "Machine Learning a Probabilistic Perspective, Kevin P. Murphy"
     
     def __init__(self, dimensions=0, mean=None, S0=None, covariance=None, nu=None, kappa=None, m0=None, name="Unnamed"):
-        self.name = name
-        self.D = dimensions
-        self.mu = mean
+        self.name = name # Name tag for distinguishing different distributions
+        self.D = dimensions # Number of dimensions
+        self.mu = mean # Mean Vector
         
-        self.m0 = m0
-        self.kappa0 = kappa
-        self.nu0 = nu
-        self.S0 = S0
+        self.m0 = m0 # Prior mean for mu
+        self.kappa0 = kappa # Weight for m0
+        self.nu0 = nu # Weight of S0
+        self.S0 = S0 # Prior mean for Sigma
         if covariance is not None: self.sigma = covariance
         
     @property
@@ -50,11 +51,15 @@ class MultivariateNormalDistribution:
                 logprob[i] = -0.5*(np.log(self._sigma_det) + self.D*np.log(2*math.pi) + asdf)
         return logprob
     def likelihood(self):
+        # Murphy 4.6.3.1
+        # p(D|mu,sigma)
+        
         # TODO
         return 0
     def loglikelihood(self, data):
         return np.sum(self.logpdf(data))
     def MLE(self, data, update_flag=True):
+        # Murphy 4.1.3
         # data is a DxN matrix where D is dimensionality and N is the number of points for MLE
         data = np.asarray(data)
         self.D, N = np.shape(data)
@@ -99,6 +104,7 @@ class MultivariateNormalDistribution:
             print("Error: dimensionality is different from MVN dimensionality")
             return
     def MAP(self, data, update_flag=True):
+        # Murphy 4.6.3.4
         # MAP estimate (posterior mode)
         m_N, tilde, nu_N, S_N = self.computePosterior(data, update_flag)
         mu = m_N
@@ -109,11 +115,12 @@ class MultivariateNormalDistribution:
         return
     
     def logPosteriorPredictive(self, data, update_flag=True):
+        # Murphy 4.6.3.6
         # Uses m0, S0 and so on. Assuming that the computePosterior was overwriting the old prior
         dof = self.nu0 - self.D + 1;
-        print("logPosteriorPredictive dof: {}".format(dof))
-        print("logPosteriorPredictive kappa0: {}".format(self.kappa0))
         covariance = (self.kappa0 + 1) * self.S0/(self.kappa0*dof)
+        # The posterior predictive given by p(x|D) = p(x,D)/p(D) so it can easily be evaluated in terms
+        # of a ratio of marginal likelihoods. It turns out that this ratio has the form of a MVST.
         tst = mtsd.MultivariateTStudentDistribution(self.D, self.m0, covariance, dof)
         predicted_prob = tst.logpdf(data)
         return predicted_prob
