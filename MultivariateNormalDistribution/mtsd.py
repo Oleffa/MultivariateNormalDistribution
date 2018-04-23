@@ -56,8 +56,3 @@ class MultivariateTStudentDistribution:
                     logprob[i] = math.lgamma(b) - math.lgamma(self.nu/2) - 0.5*logdet - \
                                  (self.D/2)*(lognu+math.log(math.pi)) - b*z
         return logprob
-    def laplaceApproximation(self):
-        # Bishop 4.4
-        # TODO
-        # Needed?
-        return
