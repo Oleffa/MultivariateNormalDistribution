@@ -50,12 +50,20 @@ class MultivariateNormalDistribution:
                 asdf = np.matmul(np.matmul(x1,self._lambda),x2)
                 logprob[i] = -0.5*(np.log(self._sigma_det) + self.D*np.log(2*math.pi) + asdf)
         return logprob
-    def likelihood(self):
+    def likelihood(self, data):
         # Murphy 4.6.3.1
         # p(D|mu,sigma)
-        
-        # TODO
-        return 0
+        tilde, N = np.shape(data)
+        data_mean = np.average(data,axis=1).reshape(self.D, 1)
+        scatter_matrix = np.zeros((self.D,self.D))
+        for i in range (0,N):
+            x = (data[:,i].reshape(self.D,1) - data_mean)
+            scatter_matrix = scatter_matrix + np.matmul(x,np.transpose(x))
+        dm_mu = data_mean-self.mu
+        exp1 = math.exp(-N*0.5*np.matmul(np.matmul(np.transpose(dm_mu),self._lambda),dm_mu))
+        exp2 = math.exp(-0.5*np.trace(np.matmul(self._lambda,scatter_matrix)))
+        lik = math.pow((2*math.pi),(-N*self.D*0.5)) * math.pow(self._sigma_det,(-N*0.5)) * exp2
+        return lik
     def loglikelihood(self, data):
         return np.sum(self.logpdf(data))
     def MLE(self, data, update_flag=True):
