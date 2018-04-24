@@ -16,6 +16,7 @@ class MultivariateNormalDistribution:
         self.nu0 = nu # Weight of S0
         self.S0 = S0 # Prior mean for Sigma
         if covariance is not None: self.sigma = covariance
+        self.isInitialized = False
         
     @property
     def sigma(self):
@@ -26,7 +27,7 @@ class MultivariateNormalDistribution:
         self._sigma = covariance
         self._lambda = np.linalg.inv(np.asarray(self._sigma))
         self._sigma_det = np.linalg.det(self._sigma)
-        
+    
     def pdf(self):
         # Data is a DxN matrix where D is dimensionality and N is number of points to evaluate
         prob = 0
@@ -38,8 +39,7 @@ class MultivariateNormalDistribution:
     def logpdf(self, data):
         data = np.asarray(data)
         # Data is a DxN matrix, where D is dimensionality and N is number of points to evaluate
-        N = np.shape(data)[1]
-        
+        N = np.shape(data)[1]    
         logprob = np.zeros((N,1))
         if len(data) is not self.D:
             print("Error in logpdf: Dimensionality of data and MVN do not agree!")
@@ -85,6 +85,8 @@ class MultivariateNormalDistribution:
         if update_flag is True:
             self.mu = mu
             self.sigma = sigma
+            # sigma and mu are set
+            self.isInitialized = True
     def computePosterior(self,data, update_flag=True):
         # Murphy12, 4.6.3.3
         dim, N = np.shape(data)
@@ -120,6 +122,8 @@ class MultivariateNormalDistribution:
         if update_flag is True:
             self.mu = mu
             self.sigma = sigma
+            # sigma and mu are set
+            self.isInitialized = True
         return
     
     def logPosteriorPredictive(self, data, update_flag=True):
