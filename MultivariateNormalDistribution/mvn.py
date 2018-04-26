@@ -25,7 +25,10 @@ class MultivariateNormalDistribution:
     @sigma.setter
     def sigma(self, covariance):
         self._sigma = covariance
-        self._lambda = np.linalg.inv(np.asarray(self._sigma))
+        try:
+            self._lambda = np.linalg.inv(np.asarray(self._sigma))
+        except np.linalg.LinAlgError:
+            self._lambda = np.zeros((self.D, self.D))
         self._sigma_det = np.linalg.det(self._sigma)
     
     def pdf(self):
@@ -62,7 +65,7 @@ class MultivariateNormalDistribution:
         dm_mu = data_mean-self.mu
         exp1 = math.exp(-N*0.5*np.matmul(np.matmul(np.transpose(dm_mu),self._lambda),dm_mu))
         exp2 = math.exp(-0.5*np.trace(np.matmul(self._lambda,scatter_matrix)))
-        lik = math.pow((2*math.pi),(-N*self.D*0.5)) * math.pow(self._sigma_det,(-N*0.5)) * exp2
+        lik = math.pow((2*math.pi),(-N*self.D*0.5)) * math.pow(self._sigma_det,(-N*0.5)) *exp1* exp2
         return lik
     def loglikelihood(self, data):
         return np.sum(self.logpdf(data))
